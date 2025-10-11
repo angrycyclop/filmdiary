@@ -1,0 +1,22 @@
+{
+  "name": "Film Photographer's Diary",
+  "short_name": "Film Diary",
+  "description": "A diary to keep track of film photographer's shots.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f7fafc",
+  "theme_color": "#4a5568",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/4a5568/ffffff?text=FILM",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://placehold.co/512x512/4a5568/ffffff?text=FILM",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+
