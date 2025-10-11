@@ -7,7 +7,7 @@
     <!-- PWA Manifest Link -->
     <link rel="manifest" href="./manifest.json">
     <!-- Theme color for PWA -->
-    <meta name="theme-color" content="#4a5568">
+    <meta name="theme-color" content="#1c1c1e">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -20,11 +20,12 @@
             --primary-light: #4a5568;
             --primary-hover-light: #2d3748;
 
-            --bg-dark: #1a202c;
+            /* AMOLED Dark Theme */
+            --bg-dark: #000000;
             --text-dark: #e2e8f0;
-            --card-bg-dark: #2d3748;
-            --border-dark: #4a5568;
-            --input-bg-dark: #4a5568;
+            --card-bg-dark: #1c1c1e;
+            --border-dark: #2c2c2e;
+            --input-bg-dark: #2c2c2e;
             --primary-dark: #cbd5e0;
             --primary-hover-dark: #ffffff;
         }
@@ -126,15 +127,20 @@
                     <form id="new-roll-form" class="space-y-6">
                         <div>
                             <label for="camera" class="block text-sm font-medium mb-1">Camera</label>
-                            <input type="text" id="camera" class="input-field w-full px-3 py-2 rounded-md" placeholder="e.g., Canon AE-1">
+                            <input type="text" id="camera" class="input-field w-full px-3 py-2 rounded-md" placeholder="e.g., Canon AE-1" required>
                         </div>
                         <div>
                             <label for="lens" class="block text-sm font-medium mb-1">Lens</label>
-                            <input type="text" id="lens" class="input-field w-full px-3 py-2 rounded-md" placeholder="e.g., 50mm f/1.8">
+                            <input type="text" id="lens" class="input-field w-full px-3 py-2 rounded-md" placeholder="e.g., 50mm f/1.8" required>
                         </div>
                         <div>
-                            <label for="film" class="block text-sm font-medium mb-1">Film Stock</label>
-                            <select id="film" class="input-field w-full px-3 py-2 rounded-md appearance-none"></select>
+                            <label for="film" class="block text-sm font-medium mb-1">Film Stock (select or type)</label>
+                            <input id="film" list="film-datalist" class="input-field w-full px-3 py-2 rounded-md" placeholder="e.g., Kodak Portra 400" required>
+                            <datalist id="film-datalist"></datalist>
+                        </div>
+                        <div id="custom-frames-container" class="hidden transition-all duration-300">
+                             <label for="frames" class="block text-sm font-medium mb-1">Number of Frames</label>
+                             <input type="number" id="frames" class="input-field w-full px-3 py-2 rounded-md" placeholder="e.g., 36" min="1">
                         </div>
                         <button type="submit" class="btn-primary w-full py-2.5 rounded-md font-semibold">Start Shooting</button>
                     </form>
@@ -219,8 +225,7 @@
             const themeToggle = document.getElementById('theme-toggle');
             const themeIconLight = document.getElementById('theme-icon-light');
             const themeIconDark = document.getElementById('theme-icon-dark');
-            const app = document.getElementById('app');
-
+            
             const welcomeScreen = document.getElementById('welcome-screen');
             const shootingScreen = document.getElementById('shooting-screen');
             const reviewScreen = document.getElementById('review-screen');
@@ -228,7 +233,10 @@
             const newRollForm = document.getElementById('new-roll-form');
             const cameraInput = document.getElementById('camera');
             const lensInput = document.getElementById('lens');
-            const filmSelect = document.getElementById('film');
+            const filmInput = document.getElementById('film');
+            const filmDatalist = document.getElementById('film-datalist');
+            const customFramesContainer = document.getElementById('custom-frames-container');
+            const framesInput = document.getElementById('frames');
             const viewRollsBtn = document.getElementById('view-rolls-btn');
             
             const rollInfo = document.getElementById('roll-info');
@@ -253,7 +261,7 @@
             const modalCancelBtn = document.getElementById('modal-cancel-btn');
 
             // --- DATA ---
-            const filmTypes = {
+            const presetFilmTypes = {
                 "Kodak Portra 400 (135)": { name: "Kodak Portra 400", format: "135", frames: 36 },
                 "Kodak Portra 400 (120)": { name: "Kodak Portra 400", format: "120", frames: 12 },
                 "Kodak Gold 200 (135)": { name: "Kodak Gold 200", format: "135", frames: 36 },
@@ -274,6 +282,7 @@
             let currentRoll = null;
             let currentShotIndex = 0;
             let savedRolls = [];
+            let customFilmStocks = [];
 
             // --- LOCAL STORAGE & INITIALIZATION ---
             function loadFromLocalStorage() {
@@ -286,16 +295,35 @@
                 cameraInput.value = localStorage.getItem('savedCamera') || '';
                 lensInput.value = localStorage.getItem('savedLens') || '';
                 savedRolls = JSON.parse(localStorage.getItem('savedRolls')) || [];
+                customFilmStocks = JSON.parse(localStorage.getItem('customFilmStocks')) || [];
             }
 
-            function populateFilmSelect() {
-                Object.keys(filmTypes).forEach(filmName => {
+            function populateFilmDatalist() {
+                filmDatalist.innerHTML = '';
+                // Add presets
+                Object.keys(presetFilmTypes).forEach(filmName => {
                     const option = document.createElement('option');
                     option.value = filmName;
-                    option.textContent = filmName;
-                    filmSelect.appendChild(option);
+                    filmDatalist.appendChild(option);
+                });
+                // Add custom saved stocks
+                customFilmStocks.forEach(filmName => {
+                    const option = document.createElement('option');
+                    option.value = filmName;
+                    filmDatalist.appendChild(option);
                 });
             }
+            
+            filmInput.addEventListener('input', () => {
+                const isPreset = Object.keys(presetFilmTypes).includes(filmInput.value);
+                if (!isPreset && filmInput.value.trim() !== '') {
+                    customFramesContainer.classList.remove('hidden');
+                    framesInput.required = true;
+                } else {
+                    customFramesContainer.classList.add('hidden');
+                    framesInput.required = false;
+                }
+            });
 
             // --- THEME ---
             function updateThemeIcons(theme) {
@@ -324,17 +352,16 @@
             }
             
             // --- APPLICATION LOGIC ---
-            function startNewRoll(camera, lens, filmKey) {
-                const film = filmTypes[filmKey];
+            function startNewRoll(camera, lens, filmDetails) {
                 currentRoll = {
                     id: Date.now(),
                     camera,
                     lens,
-                    filmName: film.name,
-                    filmFormat: film.format,
-                    totalFrames: film.frames,
+                    filmName: filmDetails.name,
+                    filmFormat: filmDetails.format,
+                    totalFrames: filmDetails.frames,
                     startDate: new Date().toISOString(),
-                    shots: Array.from({ length: film.frames }, (_, i) => ({
+                    shots: Array.from({ length: filmDetails.frames }, (_, i) => ({
                         shotNumber: i + 1,
                         date: '',
                         settings: '',
@@ -391,18 +418,16 @@
                     return;
                 }
                 
-                // sort rolls by date, newest first
                 const sortedRolls = [...savedRolls].sort((a,b) => new Date(b.startDate) - new Date(a.startDate));
 
                 sortedRolls.forEach(roll => {
                     const rollCard = document.createElement('div');
                     rollCard.className = 'card p-4 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4';
-                    
                     const filledShots = roll.shots.filter(s => s.settings || s.description).length;
                     
                     rollCard.innerHTML = `
                         <div>
-                            <p class="font-bold">${roll.filmName} (${roll.filmFormat})</p>
+                            <p class="font-bold">${roll.filmName} <span class="opacity-75 font-normal">(${roll.filmFormat || 'Custom'})</span></p>
                             <p class="text-sm opacity-75">${roll.camera} | ${new Date(roll.startDate).toLocaleDateString()}</p>
                             <p class="text-sm opacity-75">${filledShots} / ${roll.totalFrames} shots logged</p>
                         </div>
@@ -421,10 +446,9 @@
                 modalTitle.textContent = title;
                 modalText.textContent = text;
                 
-                // Clone and replace the button to remove old event listeners
                 const newConfirmBtn = modalConfirmBtn.cloneNode(true);
                 modalConfirmBtn.parentNode.replaceChild(newConfirmBtn, modalConfirmBtn);
-                modalConfirmBtn = newConfirmBtn; // re-assign to the new element
+                modalConfirmBtn = newConfirmBtn;
                 
                 modalConfirmBtn.onclick = () => {
                     onConfirm();
@@ -436,22 +460,43 @@
                 confirmationModal.classList.add('flex');
             }
 
-
             // --- EVENT LISTENERS ---
             newRollForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const camera = cameraInput.value.trim();
                 const lens = lensInput.value.trim();
-                const filmKey = filmSelect.value;
-                
-                if (!camera || !lens || !filmKey) {
-                    alert('Please fill in all fields.'); // Simple validation
-                    return;
+                const filmValue = filmInput.value.trim();
+                let filmDetails;
+
+                const isPreset = Object.keys(presetFilmTypes).includes(filmValue);
+
+                if (isPreset) {
+                    filmDetails = presetFilmTypes[filmValue];
+                } else {
+                    const frames = parseInt(framesInput.value, 10);
+                    if (!frames || frames < 1) {
+                        alert('Please enter a valid number of frames for your custom film.');
+                        return;
+                    }
+                    filmDetails = { name: filmValue, format: 'Custom', frames: frames };
+                    
+                    // Save custom film stock if it's new
+                    if (!customFilmStocks.includes(filmValue)) {
+                        customFilmStocks.push(filmValue);
+                        localStorage.setItem('customFilmStocks', JSON.stringify(customFilmStocks));
+                        populateFilmDatalist();
+                    }
                 }
                 
                 localStorage.setItem('savedCamera', camera);
                 localStorage.setItem('savedLens', lens);
-                startNewRoll(camera, lens, filmKey);
+                startNewRoll(camera, lens, filmDetails);
+                
+                // Clear custom fields
+                filmInput.value = '';
+                customFramesContainer.classList.add('hidden');
+                framesInput.required = false;
+                framesInput.value = '';
             });
 
             nextShotBtn.addEventListener('click', () => {
@@ -492,7 +537,6 @@
                 showPage('welcome-screen');
             });
 
-            // Event delegation for dynamically created buttons
             rollsListContainer.addEventListener('click', (e) => {
                 const target = e.target.closest('button');
                 if (!target) return;
@@ -535,7 +579,6 @@
                 confirmationModal.classList.remove('flex');
             });
 
-            // --- EXPORT FUNCTIONS ---
             function exportRoll(rollId, format) {
                 const roll = savedRolls.find(r => r.id === rollId);
                 if (!roll) return;
@@ -544,17 +587,13 @@
                 const filename = `roll_${roll.filmName.replace(/ /g, '_')}_${roll.id}.${format}`;
 
                 if (format === 'txt') {
-                    content += `Film Photography Log\n`;
-                    content += `=====================\n`;
-                    content += `ID: ${roll.id}\n`;
-                    content += `Date Started: ${new Date(roll.startDate).toLocaleString()}\n`;
-                    content += `Camera: ${roll.camera}\n`;
-                    content += `Lens: ${roll.lens}\n`;
-                    content += `Film: ${roll.filmName} (${roll.filmFormat})\n`;
-                    content += `=====================\n\n`;
+                    content += `Film Photography Log\n=====================\n`;
+                    content += `ID: ${roll.id}\nDate Started: ${new Date(roll.startDate).toLocaleString()}\n`;
+                    content += `Camera: ${roll.camera}\nLens: ${roll.lens}\n`;
+                    content += `Film: ${roll.filmName} (${roll.filmFormat})\n=====================\n\n`;
 
                     roll.shots.forEach(shot => {
-                        if(shot.settings || shot.description) { // Only export shots with data
+                        if(shot.settings || shot.description) {
                              content += `Shot ${shot.shotNumber}:\n`;
                              content += `  Date: ${shot.date ? new Date(shot.date).toLocaleString() : 'N/A'}\n`;
                              content += `  Settings: ${shot.settings || 'N/A'}\n`;
@@ -568,13 +607,10 @@
                     roll.shots.forEach(shot => {
                         if(shot.settings || shot.description) {
                             const row = [
-                                shot.shotNumber,
-                                `"${shot.date ? new Date(shot.date).toISOString() : ''}"`,
-                                `"${shot.settings.replace(/"/g, '""')}"`, // Escape quotes
-                                `"${shot.description.replace(/"/g, '""')}"`,
-                                `"${roll.camera}"`,
-                                `"${roll.lens}"`,
-                                `"${roll.filmName}"`
+                                shot.shotNumber, `"${shot.date ? new Date(shot.date).toISOString() : ''}"`,
+                                `"${(shot.settings || '').replace(/"/g, '""')}"`,
+                                `"${(shot.description || '').replace(/"/g, '""')}"`,
+                                `"${roll.camera}"`, `"${roll.lens}"`, `"${roll.filmName}"`
                             ];
                             content += row.join(',') + '\n';
                         }
@@ -593,7 +629,6 @@
                 URL.revokeObjectURL(a.href);
             }
 
-            // --- PWA Service Worker Registration ---
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('./sw.js').then(registration => {
@@ -604,10 +639,9 @@
                 });
             }
 
-
             // --- STARTUP ---
             loadFromLocalStorage();
-            populateFilmSelect();
+            populateFilmDatalist();
         });
     </script>
 </body>
