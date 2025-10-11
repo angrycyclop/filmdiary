@@ -1,7 +1,10 @@
-const CACHE_NAME = 'film-diary-cache-v1';
+const CACHE_NAME = 'film-diary-cache-v2'; // Updated cache version
 const urlsToCache = [
   './',
-  './index.html'
+  './index.html',
+  './manifest.json',
+  './icon-512.png',
+  './icon-192.png'
 ];
 
 // Install a service worker
@@ -10,7 +13,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(function(cache) {
-        console.log('Opened cache');
+        console.log('Opened cache and caching files');
         return cache.addAll(urlsToCache);
       })
   );
@@ -31,7 +34,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Update a service worker
+// Update a service worker and clean up old caches
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -39,6 +42,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -46,3 +50,4 @@ self.addEventListener('activate', event => {
     })
   );
 });
+
