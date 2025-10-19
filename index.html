@@ -361,6 +361,16 @@
             }
             
             // --- APPLICATION LOGIC ---
+            function formatLocalDate() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                const day = now.getDate().toString().padStart(2, '0');
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+
             function startNewRoll(camera, lens, filmDetails) {
                 currentRoll = {
                     id: Date.now(),
@@ -388,7 +398,7 @@
                 const shot = currentRoll.shots[currentShotIndex];
                 rollInfo.textContent = `${currentRoll.camera} | ${currentRoll.lens} | ${currentRoll.filmName}`;
                 shotNumberHeading.textContent = `Shot ${shot.shotNumber}`;
-                shotDateInput.value = shot.date || new Date().toISOString().slice(0, 16);
+                shotDateInput.value = shot.date || formatLocalDate();
                 shotSettingsInput.value = shot.settings;
                 shotDescriptionInput.value = shot.description;
                 shotIndicator.textContent = `${currentShotIndex + 1} / ${currentRoll.totalFrames}`;
@@ -655,5 +665,3 @@
     </script>
 </body>
 </html>
-
-
