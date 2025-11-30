@@ -132,62 +132,76 @@
 <body class="antialiased">
 
 <div id="app" class="min-h-screen p-4 sm:p-6 md:p-8 flex flex-col items-center">
-    <!-- Header with Theme Switcher -->
+    <!-- Header with Theme & Lang Switcher -->
     <header class="w-full max-w-4xl flex justify-between items-center mb-8">
         <div>
-            <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Photographer's Diary</h1>
-            <p class="text-xs md:text-sm opacity-70 mt-1">
+            <h1 id="i18n-appTitle" class="text-2xl md:text-3xl font-bold tracking-tight">
+                Photographer's Diary
+            </h1>
+            <p id="i18n-appSubtitle" class="text-xs md:text-sm opacity-70 mt-1">
                 Film roll logbook for cameras, settings, places & stories.
             </p>
         </div>
-        <button id="theme-toggle"
-                class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2"
-                style="color: var(--primary-color); background-color: var(--input-bg-color);">
-            <svg id="theme-icon-light" class="w-6 h-6" fill="none" stroke="currentColor"
-                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-            </svg>
-            <svg id="theme-icon-dark" class="w-6 h-6 hidden" fill="none" stroke="currentColor"
-                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-            </svg>
-        </button>
+        <div class="flex items-center gap-2">
+            <button id="lang-toggle"
+                    class="px-3 py-1 text-xs rounded-full border"
+                    style="border-color: var(--border-color); color: var(--primary-color);">
+                EN
+            </button>
+            <button id="theme-toggle"
+                    class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2"
+                    style="color: var(--primary-color); background-color: var(--input-bg-color);">
+                <svg id="theme-icon-light" class="w-6 h-6" fill="none" stroke="currentColor"
+                     viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <svg id="theme-icon-dark" class="w-6 h-6 hidden" fill="none" stroke="currentColor"
+                     viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+        </div>
     </header>
 
     <main class="w-full flex-grow flex flex-col items-center">
         <!-- Welcome Screen -->
         <div id="welcome-screen" class="page active w-full max-w-md">
             <div class="card p-8 shadow-md mx-auto">
-                <h2 class="text-xl font-semibold mb-6 text-center">New Roll</h2>
+                <h2 id="i18n-newRollTitle" class="text-xl font-semibold mb-6 text-center">New Roll</h2>
                 <form id="new-roll-form" class="space-y-6">
                     <div>
-                        <label for="camera" class="block text-sm font-medium mb-1">Camera</label>
+                        <label for="camera" id="i18n-cameraLabel" class="block text-sm font-medium mb-1">Camera</label>
                         <input type="text" id="camera"
                                class="input-field w-full px-3 py-2 rounded-md"
-                               placeholder="e.g., Konica Hexar AF" required>
+                               placeholder="e.g., Fujifilm X-T5" required>
                     </div>
                     <div>
-                        <label for="lens" class="block text-sm font-medium mb-1">Lens</label>
+                        <label for="lens" id="i18n-lensLabel" class="block text-sm font-medium mb-1">Lens</label>
                         <input type="text" id="lens"
                                class="input-field w-full px-3 py-2 rounded-md"
                                placeholder="e.g., 35mm f/1.4" required>
                     </div>
                     <div>
-                        <label for="film" class="block text-sm font-medium mb-1">Film Stock (select or type)</label>
+                        <label for="film" id="i18n-filmLabel" class="block text-sm font-medium mb-1">
+                            Film Stock (select or type)
+                        </label>
                         <input id="film" list="film-datalist"
                                class="input-field w-full px-3 py-2 rounded-md"
                                placeholder="e.g., Kodak Portra 400" required>
                         <datalist id="film-datalist"></datalist>
                     </div>
                     <div id="custom-frames-container" class="hidden transition-all duration-300">
-                        <label for="frames" class="block text-sm font-medium mb-1">Number of Frames</label>
+                        <label for="frames" id="i18n-framesLabel" class="block text-sm font-medium mb-1">
+                            Number of Frames
+                        </label>
                         <input type="number" id="frames"
                                class="input-field w-full px-3 py-2 rounded-md"
                                placeholder="e.g., 36" min="1">
                     </div>
                     <button type="submit"
+                            id="i18n-startShootingBtn"
                             class="btn-primary w-full py-2.5 rounded-md font-semibold">
                         Start Shooting
                     </button>
@@ -199,7 +213,7 @@
                     </button>
                 </div>
                 <p class="mt-6 text-xs text-center opacity-60">
-                    subscribe to support
+                    поддержи подпиской
                     <a href="https://t.me/angry_channel" target="_blank" rel="noopener noreferrer"
                        class="underline hover:opacity-100">https://t.me/angry_channel</a>
                 </p>
@@ -230,7 +244,7 @@
                     <!-- LEFT COLUMN: time, settings, location -->
                     <div class="space-y-4">
                         <div>
-                            <label for="shot-date"
+                            <label id="i18n-timeLabel" for="shot-date"
                                    class="block text-xs font-medium uppercase tracking-wide opacity-70">
                                 Time
                             </label>
@@ -245,7 +259,7 @@
                         </div>
 
                         <div>
-                            <label for="shot-settings"
+                            <label id="i18n-settingsLabel" for="shot-settings"
                                    class="block text-xs font-medium uppercase tracking-wide opacity-70">
                                 Settings
                             </label>
@@ -256,7 +270,8 @@
 
                         <div>
                             <div class="flex items-center justify-between">
-                                <span class="block text-xs font-medium uppercase tracking-wide opacity-70">
+                                <span id="i18n-locationLabel"
+                                      class="block text-xs font-medium uppercase tracking-wide opacity-70">
                                     Location
                                 </span>
                                 <button type="button" id="shot-location-btn"
@@ -273,7 +288,7 @@
                     <!-- RIGHT COLUMN: notes + reference photo -->
                     <div class="space-y-4">
                         <div>
-                            <label for="shot-description"
+                            <label id="i18n-notesLabel" for="shot-description"
                                    class="block text-xs font-medium uppercase tracking-wide opacity-70">
                                 Notes
                             </label>
@@ -284,7 +299,8 @@
 
                         <div>
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-medium uppercase tracking-wide opacity-70">
+                                <span id="i18n-referenceLabel"
+                                      class="text-xs font-medium uppercase tracking-wide opacity-70">
                                     Reference photo
                                 </span>
                                 <button type="button" id="shot-ref-btn"
@@ -325,7 +341,7 @@
                     <div id="shot-indicator" class="text-sm font-medium">1 / 36</div>
                     <button id="next-shot-btn"
                             class="btn-primary px-6 py-2 rounded-md font-semibold flex items-center gap-2">
-                        Next
+                        <span id="i18n-nextShotLabel">Next</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
                              viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
@@ -341,7 +357,7 @@
         <div id="review-screen" class="page w-full max-w-4xl">
             <div class="card p-6 md:p-8 shadow-md mx-auto">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Saved Rolls</h2>
+                    <h2 id="i18n-savedRollsTitle" class="text-2xl font-bold">Saved Rolls</h2>
                     <button id="back-to-welcome-from-review"
                             class="btn-secondary px-4 py-2 rounded-md font-semibold">
                         Back to New Roll
@@ -379,10 +395,133 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // --- I18N ---
+        const i18n = {
+            en: {
+                appTitle: "Photographer's Diary",
+                appSubtitle: "Film roll logbook for cameras, settings, places & stories.",
+                newRollTitle: "New Roll",
+                cameraLabel: "Camera",
+                cameraPlaceholder: "e.g., Fujifilm X-T5",
+                lensLabel: "Lens",
+                lensPlaceholder: "e.g., 35mm f/1.4",
+                filmLabel: "Film Stock (select or type)",
+                filmPlaceholder: "e.g., Kodak Portra 400",
+                framesLabel: "Number of Frames",
+                framesPlaceholder: "e.g., 36",
+                startShooting: "Start Shooting",
+                viewRolls: "View Saved Rolls",
+                savedRollsTitle: "Saved Rolls",
+                backToNewRoll: "Back to New Roll",
+                timeLabel: "Time",
+                settingsLabel: "Settings",
+                settingsPlaceholder: "e.g., f/8 · 1/250s · +1 EV",
+                locationLabel: "Location",
+                locationGet: "Get",
+                locationNotSet: "Not set",
+                notesLabel: "Notes",
+                notesPlaceholder: "e.g., Golden hour portrait, side light, subject in white shirt",
+                referenceLabel: "Reference photo",
+                referenceAdd: "Add / change",
+                referenceRemove: "Remove reference",
+                finishRollButton: "Finish Roll",
+                exitButton: "Exit",
+                prevShotButton: "Previous",
+                nextButton: "Next",
+                finishButtonShort: "Finish",
+                shotLabel: "Shot",
+                noSavedRolls: "No saved rolls yet.",
+                shotsLogged: "shots logged",
+                editButton: "Edit",
+                txtButton: "TXT",
+                csvButton: "CSV",
+                zipButton: "ZIP",
+                deleteButton: "Delete",
+                modalAreYouSureTitle: "Are you sure?",
+                modalAreYouSureText: "This action cannot be undone.",
+                modalCancel: "Cancel",
+                modalConfirm: "Confirm",
+                confirmFinishTitle: "Finish Roll?",
+                confirmFinishText: "Do you want to save this roll? You can edit it later.",
+                confirmFinishAndExitText: "Do you want to save this roll and return to the main screen?",
+                confirmExitTitle: "Exit?",
+                confirmExitText: "Any unsaved changes on this shot will be lost. Do you want to exit?",
+                confirmDeleteTitle: "Delete Roll?",
+                confirmDeleteText: "Are you sure you want to permanently delete this roll?",
+                invalidFramesAlert: "Please enter a valid number of frames for your custom film.",
+                geolocationNotSupported: "Geolocation is not supported by your browser.",
+                geolocationLocating: "Locating...",
+                geolocationError: "Unable to get location",
+                zipFailed: "Failed to generate ZIP.",
+                langToggleLabel: "EN"
+            },
+            ru: {
+                appTitle: "Дневник плёночного фотографа",
+                appSubtitle: "Журнал плёнок: камеры, настройки, места и заметки.",
+                newRollTitle: "Новый ролик",
+                cameraLabel: "Камера",
+                cameraPlaceholder: "например, Fujifilm X-T5",
+                lensLabel: "Объектив",
+                lensPlaceholder: "например, 35mm f/1.4",
+                filmLabel: "Плёнка (выбери или напиши)",
+                filmPlaceholder: "например, Kodak Portra 400",
+                framesLabel: "Количество кадров",
+                framesPlaceholder: "например, 36",
+                startShooting: "Начать съёмку",
+                viewRolls: "Сохранённые ролики",
+                savedRollsTitle: "Сохранённые ролики",
+                backToNewRoll: "К новому ролику",
+                timeLabel: "Время",
+                settingsLabel: "Настройки",
+                settingsPlaceholder: "например, f/8 · 1/250s · +1 EV",
+                locationLabel: "Локация",
+                locationGet: "Получить",
+                locationNotSet: "Не указана",
+                notesLabel: "Заметки",
+                notesPlaceholder: "например, портрет на закате, боковой свет, белая рубашка",
+                referenceLabel: "Референс-фото",
+                referenceAdd: "Добавить / изменить",
+                referenceRemove: "Удалить референс",
+                finishRollButton: "Завершить ролик",
+                exitButton: "Выйти",
+                prevShotButton: "Назад",
+                nextButton: "Дальше",
+                finishButtonShort: "Готово",
+                shotLabel: "Кадр",
+                noSavedRolls: "Пока нет сохранённых роликов.",
+                shotsLogged: "кадров записано",
+                editButton: "Редактировать",
+                txtButton: "TXT",
+                csvButton: "CSV",
+                zipButton: "ZIP",
+                deleteButton: "Удалить",
+                modalAreYouSureTitle: "Точно?",
+                modalAreYouSureText: "Это действие нельзя отменить.",
+                modalCancel: "Отмена",
+                modalConfirm: "Ок",
+                confirmFinishTitle: "Завершить ролик?",
+                confirmFinishText: "Сохранить этот ролик? Его можно будет отредактировать позже.",
+                confirmFinishAndExitText: "Сохранить этот ролик и вернуться на главный экран?",
+                confirmExitTitle: "Выйти?",
+                confirmExitText: "Несохранённые изменения этого кадра будут потеряны. Всё равно выйти?",
+                confirmDeleteTitle: "Удалить ролик?",
+                confirmDeleteText: "Удалить этот ролик безвозвратно?",
+                invalidFramesAlert: "Введите корректное количество кадров для плёнки.",
+                geolocationNotSupported: "Геолокация не поддерживается браузером.",
+                geolocationLocating: "Определяем местоположение...",
+                geolocationError: "Не удалось получить локацию",
+                zipFailed: "Не удалось собрать ZIP.",
+                langToggleLabel: "RU"
+            }
+        };
+
+        let currentLang = 'en';
+
         // --- DOM ELEMENTS ---
         const themeToggle = document.getElementById('theme-toggle');
         const themeIconLight = document.getElementById('theme-icon-light');
         const themeIconDark = document.getElementById('theme-icon-dark');
+        const langToggle = document.getElementById('lang-toggle');
 
         const welcomeScreen = document.getElementById('welcome-screen');
         const shootingScreen = document.getElementById('shooting-screen');
@@ -416,6 +555,7 @@
 
         const prevShotBtn = document.getElementById('prev-shot-btn');
         const nextShotBtn = document.getElementById('next-shot-btn');
+        const nextShotLabel = document.getElementById('i18n-nextShotLabel');
         const finishRollBtn = document.getElementById('finish-roll-btn');
         const backToWelcomeBtn = document.getElementById('back-to-welcome-btn');
         const backToWelcomeFromReview = document.getElementById('back-to-welcome-from-review');
@@ -571,9 +711,10 @@
             if (!currentRoll) return;
 
             const shot = currentRoll.shots[currentShotIndex];
+            const t = i18n[currentLang];
 
             rollInfo.textContent = `${currentRoll.camera} | ${currentRoll.lens} | ${currentRoll.filmName}`;
-            shotNumberHeading.textContent = `Shot ${shot.shotNumber}`;
+            shotNumberHeading.textContent = `${t.shotLabel} ${shot.shotNumber}`;
             shotIndicator.textContent = `${currentShotIndex + 1} / ${currentRoll.totalFrames}`;
 
             // Time
@@ -587,7 +728,7 @@
             if (shot.location && typeof shot.location.lat === 'number' && typeof shot.location.lon === 'number') {
                 shotLocationLabel.textContent = `${shot.location.lat.toFixed(5)}, ${shot.location.lon.toFixed(5)}`;
             } else {
-                shotLocationLabel.textContent = 'Not set';
+                shotLocationLabel.textContent = t.locationNotSet;
             }
 
             // Reference photo
@@ -605,8 +746,8 @@
             prevShotBtn.disabled = currentShotIndex === 0;
             prevShotBtn.style.opacity = prevShotBtn.disabled ? '0.5' : '1';
 
-            nextShotBtn.textContent =
-                (currentShotIndex === currentRoll.totalFrames - 1) ? 'Finish' : 'Next';
+            nextShotLabel.textContent =
+                (currentShotIndex === currentRoll.totalFrames - 1) ? t.finishButtonShort : t.nextButton;
         }
 
         function upsertCurrentRollInSavedRolls() {
@@ -639,10 +780,13 @@
         }
 
         function renderSavedRolls() {
+            const t = i18n[currentLang];
             rollsListContainer.innerHTML = '';
             if (savedRolls.length === 0) {
-                rollsListContainer.innerHTML =
-                    '<p class="text-center opacity-75 text-sm">No saved rolls yet.</p>';
+                const p = document.createElement('p');
+                p.className = 'text-center opacity-75 text-sm';
+                p.textContent = t.noSavedRolls;
+                rollsListContainer.appendChild(p);
                 return;
             }
 
@@ -657,30 +801,35 @@
                 const filledShots = roll.shots.filter(s => s.settings || s.description).length;
 
                 rollCard.innerHTML = `
-  <div>
-      <p class="font-bold">${roll.filmName} <span class="opacity-75 font-normal">(${roll.filmFormat || 'Custom'})</span></p>
-      <p class="text-sm opacity-75">${roll.camera} | ${new Date(roll.startDate).toLocaleDateString()}</p>
-      <p class="text-sm opacity-75">${filledShots} / ${roll.totalFrames} shots logged</p>
-  </div>
-  <div class="flex flex-wrap gap-2 self-stretch md:self-center justify-start md:justify-end">
-      <button class="btn-secondary text-sm px-3 py-1.5 rounded-md edit-roll-btn" data-id="${roll.id}">Edit</button>
-      <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-txt-btn" data-id="${roll.id}">TXT</button>
-      <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-csv-btn" data-id="${roll.id}">CSV</button>
-      <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-zip-btn" data-id="${roll.id}">ZIP</button>
-      <button class="text-sm px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 delete-roll-btn" data-id="${roll.id}">Delete</button>
-  </div>
-`;
+                        <div>
+                            <p class="font-bold">${roll.filmName} <span class="opacity-75 font-normal">(${roll.filmFormat || 'Custom'})</span></p>
+                            <p class="text-sm opacity-75">${roll.camera} | ${new Date(roll.startDate).toLocaleDateString()}</p>
+                            <p class="text-sm opacity-75">${filledShots} / ${roll.totalFrames} ${t.shotsLogged}</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 self-stretch md:self-center justify-start md:justify-end">
+                            <button class="btn-secondary text-sm px-3 py-1.5 rounded-md edit-roll-btn" data-id="${roll.id}">${t.editButton}</button>
+                            <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-txt-btn" data-id="${roll.id}">${t.txtButton}</button>
+                            <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-csv-btn" data-id="${roll.id}">${t.csvButton}</button>
+                            <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-zip-btn" data-id="${roll.id}">${t.zipButton}</button>
+                            <button class="text-sm px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 delete-roll-btn" data-id="${roll.id}">${t.deleteButton}</button>
+                        </div>
+                    `;
                 rollsListContainer.appendChild(rollCard);
             });
         }
 
         function showConfirmationModal(title, text, onConfirm) {
-            modalTitle.textContent = title;
-            modalText.textContent = text;
+            const t = i18n[currentLang];
+
+            modalTitle.textContent = title || t.modalAreYouSureTitle;
+            modalText.textContent = text || t.modalAreYouSureText;
 
             const newConfirmBtn = modalConfirmBtn.cloneNode(true);
             modalConfirmBtn.parentNode.replaceChild(newConfirmBtn, modalConfirmBtn);
             modalConfirmBtn = newConfirmBtn;
+
+            modalCancelBtn.textContent = t.modalCancel;
+            modalConfirmBtn.textContent = t.modalConfirm;
 
             modalConfirmBtn.onclick = () => {
                 onConfirm();
@@ -692,7 +841,75 @@
             confirmationModal.classList.add('flex');
         }
 
+        // --- LANGUAGE APPLY ---
+        function applyLanguage(lang) {
+            if (!i18n[lang]) lang = 'en';
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            const t = i18n[lang];
+
+            // Header
+            document.getElementById('i18n-appTitle').textContent = t.appTitle;
+            document.getElementById('i18n-appSubtitle').textContent = t.appSubtitle;
+            langToggle.textContent = t.langToggleLabel;
+
+            // Welcome screen
+            document.getElementById('i18n-newRollTitle').textContent = t.newRollTitle;
+            document.getElementById('i18n-cameraLabel').textContent = t.cameraLabel;
+            document.getElementById('i18n-lensLabel').textContent = t.lensLabel;
+            document.getElementById('i18n-filmLabel').textContent = t.filmLabel;
+            document.getElementById('i18n-framesLabel').textContent = t.framesLabel;
+
+            cameraInput.placeholder = t.cameraPlaceholder;
+            lensInput.placeholder = t.lensPlaceholder;
+            filmInput.placeholder = t.filmPlaceholder;
+            framesInput.placeholder = t.framesPlaceholder;
+
+            document.getElementById('i18n-startShootingBtn').textContent = t.startShooting;
+            viewRollsBtn.textContent = t.viewRolls;
+
+            // Shooting screen static labels
+            document.getElementById('i18n-timeLabel').textContent = t.timeLabel;
+            document.getElementById('i18n-settingsLabel').textContent = t.settingsLabel;
+            document.getElementById('i18n-locationLabel').textContent = t.locationLabel;
+            document.getElementById('i18n-notesLabel').textContent = t.notesLabel;
+            document.getElementById('i18n-referenceLabel').textContent = t.referenceLabel;
+
+            shotSettingsInput.placeholder = t.settingsPlaceholder;
+            shotDescriptionInput.placeholder = t.notesPlaceholder;
+
+            shotLocationBtn.textContent = t.locationGet;
+            shotRefBtn.textContent = t.referenceAdd;
+            shotRefRemoveBtn.textContent = t.referenceRemove;
+
+            finishRollBtn.textContent = t.finishRollButton;
+            backToWelcomeBtn.textContent = t.exitButton;
+            prevShotBtn.textContent = t.prevShotButton;
+
+            // Review screen
+            document.getElementById('i18n-savedRollsTitle').textContent = t.savedRollsTitle;
+            backToWelcomeFromReview.textContent = t.backToNewRoll;
+
+            // Modal buttons
+            modalCancelBtn.textContent = t.modalCancel;
+            modalConfirmBtn.textContent = t.modalConfirm;
+
+            // Update dynamic parts if we have a roll
+            if (currentRoll) {
+                updateShootingScreen();
+            }
+            // Rerender rolls list for translated texts
+            if (reviewScreen.classList.contains('active')) {
+                renderSavedRolls();
+            }
+        }
+
         // --- EVENT LISTENERS ---
+        langToggle.addEventListener('click', () => {
+            const next = currentLang === 'en' ? 'ru' : 'en';
+            applyLanguage(next);
+        });
+
         newRollForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const camera = cameraInput.value.trim();
@@ -707,7 +924,7 @@
             } else {
                 const frames = parseInt(framesInput.value, 10);
                 if (!frames || frames < 1) {
-                    alert('Please enter a valid number of frames for your custom film.');
+                    alert(i18n[currentLang].invalidFramesAlert);
                     return;
                 }
                 filmDetails = {name: filmValue, format: 'Custom', frames: frames};
@@ -737,9 +954,10 @@
                 currentShotIndex++;
                 updateShootingScreen();
             } else {
+                const t = i18n[currentLang];
                 showConfirmationModal(
-                    'Finish Roll?',
-                    'Do you want to save this roll? You can edit it later.',
+                    t.confirmFinishTitle,
+                    t.confirmFinishText,
                     finishCurrentRoll
                 );
             }
@@ -754,17 +972,19 @@
         });
 
         finishRollBtn.addEventListener('click', () => {
+            const t = i18n[currentLang];
             showConfirmationModal(
-                'Finish Roll?',
-                'Do you want to save this roll and return to the main screen?',
+                t.confirmFinishTitle,
+                t.confirmFinishAndExitText,
                 finishCurrentRoll
             );
         });
 
         backToWelcomeBtn.addEventListener('click', () => {
+            const t = i18n[currentLang];
             showConfirmationModal(
-                'Exit?',
-                'Any unsaved changes on this shot will be lost. Do you want to exit?',
+                t.confirmExitTitle,
+                t.confirmExitText,
                 () => {
                     saveCurrentShot();
                     showPage('welcome-screen');
@@ -798,9 +1018,16 @@
 
             if (target.classList.contains('delete-roll-btn')) {
                 const roll = savedRolls.find(r => r.id === rollId);
+                const t = i18n[currentLang];
+                const dateStr = new Date(roll.startDate).toLocaleDateString();
+                const text =
+                    currentLang === 'ru'
+                        ? `${t.confirmDeleteText} (${roll.filmName}, ${dateStr})`
+                        : `${t.confirmDeleteText} "${roll.filmName}" started on ${dateStr}?`;
+
                 showConfirmationModal(
-                    'Delete Roll?',
-                    `Are you sure you want to permanently delete the roll for "${roll.filmName}" started on ${new Date(roll.startDate).toLocaleDateString()}?`,
+                    t.confirmDeleteTitle,
+                    text,
                     () => {
                         savedRolls = savedRolls.filter(r => r.id !== rollId);
                         localStorage.setItem('savedRolls', JSON.stringify(savedRolls));
@@ -891,7 +1118,7 @@
             const roll = savedRolls.find(r => r.id === rollId);
             if (!roll) return;
             if (typeof JSZip === 'undefined') {
-                alert('ZIP export is not available (JSZip not loaded).');
+                alert(i18n[currentLang].zipFailed);
                 return;
             }
 
@@ -929,7 +1156,7 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    alert('Failed to generate ZIP.');
+                    alert(i18n[currentLang].zipFailed);
                 });
         }
 
@@ -973,12 +1200,13 @@
 
         // --- GEOLOCATION ---
         shotLocationBtn.addEventListener('click', () => {
+            const t = i18n[currentLang];
             if (!navigator.geolocation) {
-                alert('Geolocation is not supported by your browser.');
+                alert(t.geolocationNotSupported);
                 return;
             }
 
-            shotLocationLabel.textContent = 'Locating...';
+            shotLocationLabel.textContent = t.geolocationLocating;
 
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
@@ -993,7 +1221,7 @@
                 },
                 (err) => {
                     console.error(err);
-                    shotLocationLabel.textContent = 'Unable to get location';
+                    shotLocationLabel.textContent = t.geolocationError;
                 },
                 {
                     enableHighAccuracy: true,
@@ -1055,6 +1283,11 @@
         // --- STARTUP ---
         loadFromLocalStorage();
         populateFilmDatalist();
+
+        const savedLang = localStorage.getItem('lang');
+        const browserLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+        const initialLang = savedLang || (browserLang.startsWith('ru') ? 'ru' : 'en');
+        applyLanguage(initialLang);
     });
 </script>
 </body>
