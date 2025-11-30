@@ -166,7 +166,7 @@
                         <label for="camera" class="block text-sm font-medium mb-1">Camera</label>
                         <input type="text" id="camera"
                                class="input-field w-full px-3 py-2 rounded-md"
-                               placeholder="e.g., Fujifilm X-T5" required>
+                               placeholder="e.g., Konica Hexar AF" required>
                     </div>
                     <div>
                         <label for="lens" class="block text-sm font-medium mb-1">Lens</label>
@@ -293,7 +293,13 @@
                                 </button>
                             </div>
 
-                            <input type="file" id="shot-ref-input" accept="image/*" class="hidden">
+                            <input
+                                type="file"
+                                id="shot-ref-input"
+                                accept="image/*"
+                                capture="environment"
+                                class="hidden"
+                            >
 
                             <div id="shot-ref-preview-wrapper"
                                  class="w-full aspect-video rounded-lg border overflow-hidden"
@@ -368,6 +374,9 @@
     </main>
 </div>
 
+<!-- JSZip CDN -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         // --- DOM ELEMENTS ---
@@ -418,6 +427,30 @@
         const modalText = document.getElementById('modal-text');
         let modalConfirmBtn = document.getElementById('modal-confirm-btn');
         const modalCancelBtn = document.getElementById('modal-cancel-btn');
+
+        // --- UTILITIES ---
+        function getLocalDateTimeValue() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+
+            const year = now.getFullYear();
+            const month = pad(now.getMonth() + 1);
+            const day = pad(now.getDate());
+            const hours = pad(now.getHours());
+            const minutes = pad(now.getMinutes());
+
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function base64ToUint8Array(base64) {
+            const binary = atob(base64);
+            const len = binary.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes;
+        }
 
         // --- DATA ---
         const presetFilmTypes = {
@@ -544,7 +577,7 @@
             shotIndicator.textContent = `${currentShotIndex + 1} / ${currentRoll.totalFrames}`;
 
             // Time
-            shotDateInput.value = shot.date || new Date().toISOString().slice(0, 16);
+            shotDateInput.value = shot.date || getLocalDateTimeValue();
 
             // Settings / notes
             shotSettingsInput.value = shot.settings || '';
@@ -633,6 +666,7 @@
                             <button class="btn-secondary text-sm px-3 py-1.5 rounded-md edit-roll-btn" data-id="${roll.id}">Edit</button>
                             <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-txt-btn" data-id="${roll.id}">TXT</button>
                             <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-csv-btn" data-id="${roll.id}">CSV</button>
+                            <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-zip-btn" data-id="${roll.id}">ZIP</button>
                             <button class="text-sm px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 delete-roll-btn" data-id="${roll.id}">Delete</button>
                         </div>
                     `;
@@ -782,6 +816,10 @@
             if (target.classList.contains('export-csv-btn')) {
                 exportRoll(rollId, 'csv');
             }
+
+            if (target.classList.contains('export-zip-btn')) {
+                exportRollZip(rollId);
+            }
         });
 
         modalCancelBtn.addEventListener('click', () => {
@@ -814,6 +852,7 @@
                         content += `\n`;
                     }
                 });
+                downloadFile(content, filename, 'text/plain');
             } else if (format === 'csv') {
                 const header = [
                     'Shot Number',
@@ -844,15 +883,68 @@
                         content += row.join(',') + '\n';
                     }
                 });
+                downloadFile(content, filename, 'text/csv');
+            }
+        }
+
+        function exportRollZip(rollId) {
+            const roll = savedRolls.find(r => r.id === rollId);
+            if (!roll) return;
+            if (typeof JSZip === 'undefined') {
+                alert('ZIP export is not available (JSZip not loaded).');
+                return;
             }
 
-            downloadFile(content, filename, `text/${format === 'csv' ? 'csv' : 'plain'}`);
+            const zip = new JSZip();
+            const baseFilename = `roll_${roll.filmName.replace(/ /g, '_')}_${roll.id}`;
+
+            // Подготовим JSON без base64, но с ссылками на файлы
+            const exportRoll = JSON.parse(JSON.stringify(roll));
+            exportRoll.shots.forEach(shot => {
+                const refFilename = `refs/shot_${String(shot.shotNumber).padStart(2, '0')}.jpg`;
+                if (shot.reference) {
+                    shot.referenceFile = refFilename;
+                    delete shot.reference;
+                } else {
+                    shot.referenceFile = null;
+                    delete shot.reference;
+                }
+            });
+
+            zip.file('roll.json', JSON.stringify(exportRoll, null, 2));
+
+            // Добавляем картинки в refs/
+            roll.shots.forEach(shot => {
+                if (!shot.reference) return;
+                const parts = shot.reference.split(',');
+                if (parts.length < 2) return;
+                const bytes = base64ToUint8Array(parts[1]);
+                const filename = `refs/shot_${String(shot.shotNumber).padStart(2, '0')}.jpg`;
+                zip.file(filename, bytes, {binary: true});
+            });
+
+            zip.generateAsync({type: 'blob'})
+                .then(blob => {
+                    downloadBlobFile(blob, `${baseFilename}.zip`);
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Failed to generate ZIP.');
+                });
         }
 
         function downloadFile(content, filename, contentType) {
             const a = document.createElement('a');
             const file = new Blob([content], {type: contentType});
             a.href = URL.createObjectURL(file);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function downloadBlobFile(blob, filename) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
             a.download = filename;
             a.click();
             URL.revokeObjectURL(a.href);
@@ -875,7 +967,7 @@
 
         // --- "NOW" BUTTON ---
         shotDateNowBtn.addEventListener('click', () => {
-            shotDateInput.value = new Date().toISOString().slice(0, 16);
+            shotDateInput.value = getLocalDateTimeValue();
             saveCurrentShot();
         });
 
@@ -921,11 +1013,33 @@
 
             const reader = new FileReader();
             reader.onload = () => {
-                if (!currentRoll) return;
-                const shot = currentRoll.shots[currentShotIndex];
-                shot.reference = reader.result; // dataURL
-                saveCurrentShot();
-                updateShootingScreen();
+                const img = new Image();
+                img.onload = () => {
+                    const maxSize = 1024; // макс. ширина/высота референса
+                    let {width, height} = img;
+
+                    if (width > maxSize || height > maxSize) {
+                        const ratio = Math.min(maxSize / width, maxSize / height);
+                        width = Math.round(width * ratio);
+                        height = Math.round(height * ratio);
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+                    if (!currentRoll) return;
+                    const shot = currentRoll.shots[currentShotIndex];
+                    shot.reference = resizedDataUrl;
+                    saveCurrentShot();
+                    updateShootingScreen();
+                };
+                img.src = reader.result;
             };
             reader.readAsDataURL(file);
         });
