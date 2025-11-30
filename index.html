@@ -149,13 +149,6 @@
                     <div class="mt-6 pt-6 border-t" style="border-color: var(--border-color);">
                          <button id="view-rolls-btn" class="btn-secondary w-full py-2.5 rounded-md font-semibold">View Saved Rolls</button>
                     </div>
-                    <!-- Link to Telegram Channel -->
-                    <div class="mt-8 text-center text-sm opacity-60" style="color: var(--primary-color);">
-                        <span>поддержи подпиской: </span>
-                        <a href="https://t.me/angry_channel" target="_blank" rel="noopener noreferrer" class="hover:opacity-100 underline transition-opacity">
-                            angrycyclop_ch
-                        </a>
-                    </div>
                 </div>
             </div>
 
@@ -175,19 +168,111 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
-                             <div>
-                                <label for="shot-date" class="block text-sm font-medium">Date</label>
-                                <input type="datetime-local" id="shot-date" class="input-field w-full mt-1 px-3 py-2 rounded-md">
-                            </div>
-                            <div>
-                                <label for="shot-settings" class="block text-sm font-medium">Settings (Aperture, Shutter Speed, etc.)</label>
-                                <input type="text" id="shot-settings" class="input-field w-full mt-1 px-3 py-2 rounded-md" placeholder="e.g., f/8, 1/250s">
-                            </div>
+                             <div class="space-y-3">
+    <div>
+        <label for="shot-date" class="block text-xs font-medium uppercase tracking-wide opacity-70">
+            Time
+        </label>
+        <div class="flex items-center gap-2 mt-1">
+            <input
+                type="datetime-local"
+                id="shot-date"
+                class="input-field flex-1 px-3 py-2 rounded-md"
+            >
+            <button
+                type="button"
+                id="shot-date-now-btn"
+                class="btn-secondary text-xs px-3 py-2 rounded-md font-semibold whitespace-nowrap"
+            >
+                Now
+            </button>
+        </div>
+    </div>
+
+    <div>
+        <label for="shot-settings" class="block text-xs font-medium uppercase tracking-wide opacity-70">
+            Settings
+        </label>
+        <input
+            type="text"
+            id="shot-settings"
+            class="input-field w-full mt-1 px-3 py-2 rounded-md"
+            placeholder="e.g., f/8, 1/250s, +1 EV"
+        >
+    </div>
+
+    <div>
+        <div class="flex items-center justify-between">
+            <span class="block text-xs font-medium uppercase tracking-wide opacity-70">
+                Location
+            </span>
+            <button
+                type="button"
+                id="shot-location-btn"
+                class="text-xs font-medium underline opacity-80 hover:opacity-100"
+            >
+                Get
+            </button>
+        </div>
+        <p id="shot-location-label" class="mt-1 text-xs opacity-70">
+            Not set
+        </p>
+    </div>
+</div>
+
                         </div>
-                        <div>
-                            <label for="shot-description" class="block text-sm font-medium">Description / Notes</label>
-                            <textarea id="shot-description" rows="5" class="input-field w-full mt-1 px-3 py-2 rounded-md" placeholder="e.g., Golden hour portrait"></textarea>
-                        </div>
+                        <div class="space-y-4">
+    <div>
+        <label for="shot-description" class="block text-xs font-medium uppercase tracking-wide opacity-70">
+            Notes
+        </label>
+        <textarea
+            id="shot-description"
+            rows="5"
+            class="input-field w-full mt-1 px-3 py-2 rounded-md"
+            placeholder="e.g., Golden hour portrait, side light, subject wearing white shirt"
+        ></textarea>
+    </div>
+
+    <div>
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium uppercase tracking-wide opacity-70">
+                Reference photo
+            </span>
+            <button
+                type="button"
+                id="shot-ref-btn"
+                class="btn-secondary text-xs px-3 py-2 rounded-md font-semibold"
+            >
+                Add / change
+            </button>
+        </div>
+
+        <input type="file" id="shot-ref-input" accept="image/*" class="hidden">
+
+        <div
+            id="shot-ref-preview-wrapper"
+            class="w-full aspect-video rounded-lg border"
+            style="border-color: var(--border-color); display: none;"
+        >
+            <img
+                id="shot-ref-preview"
+                alt="Reference"
+                class="w-full h-full object-cover rounded-lg"
+            >
+        </div>
+
+        <button
+            type="button"
+            id="shot-ref-remove-btn"
+            class="mt-2 text-xs opacity-70 hover:opacity-100 underline"
+            style="display: none;"
+        >
+            Remove reference
+        </button>
+    </div>
+</div>
+
                     </div>
 
                     <div class="mt-8 flex justify-between items-center">
@@ -251,9 +336,20 @@
             const rollInfo = document.getElementById('roll-info');
             const shotNumberHeading = document.getElementById('shot-number-heading');
             const shotDateInput = document.getElementById('shot-date');
+            const shotDateNowBtn = document.getElementById('shot-date-now-btn');
             const shotSettingsInput = document.getElementById('shot-settings');
             const shotDescriptionInput = document.getElementById('shot-description');
             const shotIndicator = document.getElementById('shot-indicator');
+
+            const shotLocationBtn = document.getElementById('shot-location-btn');
+            const shotLocationLabel = document.getElementById('shot-location-label');
+
+            const shotRefBtn = document.getElementById('shot-ref-btn');
+            const shotRefInput = document.getElementById('shot-ref-input');
+            const shotRefPreviewWrapper = document.getElementById('shot-ref-preview-wrapper');
+            const shotRefPreview = document.getElementById('shot-ref-preview');
+            const shotRefRemoveBtn = document.getElementById('shot-ref-remove-btn');
+
 
             const prevShotBtn = document.getElementById('prev-shot-btn');
             const nextShotBtn = document.getElementById('next-shot-btn');
@@ -334,6 +430,76 @@
                 }
             });
 
+// --- AUTOSAVE ON INPUT ---
+shotDateInput.addEventListener('input', saveCurrentShot);
+shotSettingsInput.addEventListener('input', saveCurrentShot);
+shotDescriptionInput.addEventListener('input', saveCurrentShot);
+
+// --- "NOW" BUTTON ---
+shotDateNowBtn.addEventListener('click', () => {
+    shotDateInput.value = new Date().toISOString().slice(0, 16);
+    saveCurrentShot();
+});
+
+// --- GEOLOCATION ---
+shotLocationBtn.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+    }
+
+    shotLocationLabel.textContent = 'Locating...';
+
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            if (!currentRoll) return;
+            const shot = currentRoll.shots[currentShotIndex];
+            shot.location = {
+                lat: pos.coords.latitude,
+                lon: pos.coords.longitude
+            };
+            saveCurrentShot();
+            updateShootingScreen();
+        },
+        (err) => {
+            console.error(err);
+            shotLocationLabel.textContent = 'Unable to get location';
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000
+        }
+    );
+});
+
+// --- REFERENCE PHOTO ---
+shotRefBtn.addEventListener('click', () => {
+    shotRefInput.click();
+});
+
+shotRefInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        if (!currentRoll) return;
+        const shot = currentRoll.shots[currentShotIndex];
+        shot.reference = reader.result; // dataURL
+        saveCurrentShot();
+        updateShootingScreen();
+    };
+    reader.readAsDataURL(file);
+});
+
+shotRefRemoveBtn.addEventListener('click', () => {
+    if (!currentRoll) return;
+    const shot = currentRoll.shots[currentShotIndex];
+    shot.reference = null;
+    saveCurrentShot();
+    updateShootingScreen();
+});
+
             // --- THEME ---
             function updateThemeIcons(theme) {
                 if (theme === 'dark') {
@@ -361,16 +527,6 @@
             }
             
             // --- APPLICATION LOGIC ---
-            function formatLocalDate() {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = (now.getMonth() + 1).toString().padStart(2, '0');
-                const day = now.getDate().toString().padStart(2, '0');
-                const hours = now.getHours().toString().padStart(2, '0');
-                const minutes = now.getMinutes().toString().padStart(2, '0');
-                return `${year}-${month}-${day}T${hours}:${minutes}`;
-            }
-
             function startNewRoll(camera, lens, filmDetails) {
                 currentRoll = {
                     id: Date.now(),
@@ -384,8 +540,11 @@
                         shotNumber: i + 1,
                         date: '',
                         settings: '',
-                        description: ''
+                        description: '',
+                        location: null,       // { lat, lon } или null
+                        reference: null       // dataURL строки или null
                     }))
+
                 };
                 currentShotIndex = 0;
                 updateShootingScreen();
@@ -393,29 +552,61 @@
             }
             
             function updateShootingScreen() {
-                if (!currentRoll) return;
+    if (!currentRoll) return;
 
-                const shot = currentRoll.shots[currentShotIndex];
-                rollInfo.textContent = `${currentRoll.camera} | ${currentRoll.lens} | ${currentRoll.filmName}`;
-                shotNumberHeading.textContent = `Shot ${shot.shotNumber}`;
-                shotDateInput.value = shot.date || formatLocalDate();
-                shotSettingsInput.value = shot.settings;
-                shotDescriptionInput.value = shot.description;
-                shotIndicator.textContent = `${currentShotIndex + 1} / ${currentRoll.totalFrames}`;
-                
-                prevShotBtn.disabled = currentShotIndex === 0;
-                prevShotBtn.style.opacity = prevShotBtn.disabled ? '0.5' : '1';
-                
-                nextShotBtn.textContent = (currentShotIndex === currentRoll.totalFrames - 1) ? 'Finish' : 'Next';
-            }
+    const shot = currentRoll.shots[currentShotIndex];
+
+    rollInfo.textContent = `${currentRoll.camera} | ${currentRoll.lens} | ${currentRoll.filmName}`;
+    shotNumberHeading.textContent = `Shot ${shot.shotNumber}`;
+    shotIndicator.textContent = `${currentShotIndex + 1} / ${currentRoll.totalFrames}`;
+
+    // Время
+    shotDateInput.value = shot.date || new Date().toISOString().slice(0, 16);
+
+    // Настройки / заметки
+    shotSettingsInput.value = shot.settings || '';
+    shotDescriptionInput.value = shot.description || '';
+
+    // Локация
+    if (shot.location && typeof shot.location.lat === 'number' && typeof shot.location.lon === 'number') {
+        shotLocationLabel.textContent = `${shot.location.lat.toFixed(5)}, ${shot.location.lon.toFixed(5)}`;
+    } else {
+        shotLocationLabel.textContent = 'Not set';
+    }
+
+    // Референс-фото
+    if (shot.reference) {
+        shotRefPreviewWrapper.style.display = 'block';
+        shotRefPreview.src = shot.reference;
+        shotRefRemoveBtn.style.display = 'inline';
+    } else {
+        shotRefPreviewWrapper.style.display = 'none';
+        shotRefPreview.src = '';
+        shotRefRemoveBtn.style.display = 'none';
+    }
+
+    // Кнопки навигации
+    prevShotBtn.disabled = currentShotIndex === 0;
+    prevShotBtn.style.opacity = prevShotBtn.disabled ? '0.5' : '1';
+
+    nextShotBtn.textContent = (currentShotIndex === currentRoll.totalFrames - 1) ? 'Finish' : 'Next';
+}
+
 
             function saveCurrentShot() {
-                if (!currentRoll) return;
-                const shot = currentRoll.shots[currentShotIndex];
-                shot.date = shotDateInput.value;
-                shot.settings = shotSettingsInput.value;
-                shot.description = shotDescriptionInput.value;
-            }
+    if (!currentRoll) return;
+    const shot = currentRoll.shots[currentShotIndex];
+
+    shot.date = shotDateInput.value;
+    shot.settings = shotSettingsInput.value;
+    shot.description = shotDescriptionInput.value;
+
+    // location уже пишем отдельно, но если вдруг нужно — он в shot.location
+    // reference тоже обновляется отдельными хендлерами
+
+    upsertCurrentRollInSavedRolls();
+}
+
 
             function finishCurrentRoll() {
                 saveCurrentShot();
@@ -429,6 +620,18 @@
                 currentRoll = null;
                 showPage('welcome-screen');
             }
+
+function upsertCurrentRollInSavedRolls() {
+    if (!currentRoll) return;
+
+    const existingIndex = savedRolls.findIndex(r => r.id === currentRoll.id);
+    if (existingIndex > -1) {
+        savedRolls[existingIndex] = currentRoll;
+    } else {
+        savedRolls.push(currentRoll);
+    }
+    localStorage.setItem('savedRolls', JSON.stringify(savedRolls));
+}
 
             function renderSavedRolls() {
                 rollsListContainer.innerHTML = '';
@@ -665,3 +868,4 @@
     </script>
 </body>
 </html>
+
