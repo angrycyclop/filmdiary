@@ -657,19 +657,19 @@
                 const filledShots = roll.shots.filter(s => s.settings || s.description).length;
 
                 rollCard.innerHTML = `
-                        <div>
-                            <p class="font-bold">${roll.filmName} <span class="opacity-75 font-normal">(${roll.filmFormat || 'Custom'})</span></p>
-                            <p class="text-sm opacity-75">${roll.camera} | ${new Date(roll.startDate).toLocaleDateString()}</p>
-                            <p class="text-sm opacity-75">${filledShots} / ${roll.totalFrames} shots logged</p>
-                        </div>
-                        <div class="flex gap-2 self-end md:self-center">
-                            <button class="btn-secondary text-sm px-3 py-1.5 rounded-md edit-roll-btn" data-id="${roll.id}">Edit</button>
-                            <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-txt-btn" data-id="${roll.id}">TXT</button>
-                            <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-csv-btn" data-id="${roll.id}">CSV</button>
-                            <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-zip-btn" data-id="${roll.id}">ZIP</button>
-                            <button class="text-sm px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 delete-roll-btn" data-id="${roll.id}">Delete</button>
-                        </div>
-                    `;
+  <div>
+      <p class="font-bold">${roll.filmName} <span class="opacity-75 font-normal">(${roll.filmFormat || 'Custom'})</span></p>
+      <p class="text-sm opacity-75">${roll.camera} | ${new Date(roll.startDate).toLocaleDateString()}</p>
+      <p class="text-sm opacity-75">${filledShots} / ${roll.totalFrames} shots logged</p>
+  </div>
+  <div class="flex flex-wrap gap-2 self-stretch md:self-center justify-start md:justify-end">
+      <button class="btn-secondary text-sm px-3 py-1.5 rounded-md edit-roll-btn" data-id="${roll.id}">Edit</button>
+      <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-txt-btn" data-id="${roll.id}">TXT</button>
+      <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-csv-btn" data-id="${roll.id}">CSV</button>
+      <button class="btn-secondary text-sm px-3 py-1.5 rounded-md export-zip-btn" data-id="${roll.id}">ZIP</button>
+      <button class="text-sm px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 delete-roll-btn" data-id="${roll.id}">Delete</button>
+  </div>
+`;
                 rollsListContainer.appendChild(rollCard);
             });
         }
