@@ -259,14 +259,50 @@
                         </div>
 
                         <div>
-                            <label id="i18n-settingsLabel" for="shot-settings"
-                                   class="block text-xs font-medium uppercase tracking-wide opacity-70">
-                                Settings
-                            </label>
-                            <input type="text" id="shot-settings"
-                                   class="input-field w-full mt-1 px-3 py-2 rounded-md"
-                                   placeholder="e.g., f/8 · 1/250s · +1 EV">
-                        </div>
+    <label id="i18n-settingsLabel" for="shot-settings"
+           class="block text-xs font-medium uppercase tracking-wide opacity-70">
+        Settings
+    </label>
+
+    <div class="mt-2 space-y-4">
+        <!-- Shutter -->
+        <div>
+            <div class="flex items-center justify-between">
+                <span id="i18n-shutterLabel" class="text-xs font-medium uppercase tracking-wide opacity-70">Shutter</span>
+                <span id="shutter-display" class="text-sm font-semibold"></span>
+            </div>
+            <input type="range" id="shutter-slider" min="0" max="10" step="1" class="w-full mt-2">
+            <input type="text" id="shutter-custom"
+                   class="input-field w-full mt-2 px-3 py-2 rounded-md"
+                   placeholder="e.g., 1/320 or 0.7s"
+                   style="display:none;">
+        </div>
+
+        <!-- Aperture -->
+        <div>
+            <div class="flex items-center justify-between">
+                <span id="i18n-apertureLabel" class="text-xs font-medium uppercase tracking-wide opacity-70">Aperture</span>
+                <span id="aperture-display" class="text-sm font-semibold"></span>
+            </div>
+            <input type="range" id="aperture-slider" min="0" max="10" step="1" class="w-full mt-2">
+            <input type="text" id="aperture-custom"
+                   class="input-field w-full mt-2 px-3 py-2 rounded-md"
+                   placeholder="e.g., f/6.3"
+                   style="display:none;">
+        </div>
+
+        <!-- Extra settings -->
+        <div>
+            <label id="i18n-extraSettingsLabel" for="shot-settings"
+                   class="block text-xs font-medium uppercase tracking-wide opacity-70">
+                Other
+            </label>
+            <input type="text" id="shot-settings"
+                   class="input-field w-full mt-1 px-3 py-2 rounded-md"
+                   placeholder="e.g., +1 EV · flash">
+        </div>
+    </div>
+</div>
 
                         <div>
                             <div class="flex items-center justify-between">
@@ -415,7 +451,14 @@
                 backToNewRoll: "Back to New Roll",
                 timeLabel: "Time",
                 settingsLabel: "Settings",
-                settingsPlaceholder: "e.g., f/8 · 1/250s · +1 EV",
+                settingsPlaceholder: "e.g., +1 EV · flash · filter",
+                shutterLabel: "Shutter",
+                apertureLabel: "Aperture",
+                extraSettingsLabel: "Other",
+                shutterCustomPlaceholder: "e.g., 1/320 or 0.7s",
+                apertureCustomPlaceholder: "e.g., f/6.3",
+                autoWord: "Auto",
+                customWord: "Custom",
                 locationLabel: "Location",
                 locationGet: "Get",
                 locationNotSet: "Not set",
@@ -473,7 +516,14 @@
                 backToNewRoll: "К новому ролику",
                 timeLabel: "Время",
                 settingsLabel: "Настройки",
-                settingsPlaceholder: "например, f/8 · 1/250s · +1 EV",
+                settingsPlaceholder: "например, +1 EV · вспышка · фильтр",
+                shutterLabel: "Выдержка",
+                apertureLabel: "Диафрагма",
+                extraSettingsLabel: "Дополнительно",
+                shutterCustomPlaceholder: "например, 1/320 или 0.7s",
+                apertureCustomPlaceholder: "например, f/6.3",
+                autoWord: "Авто",
+                customWord: "Своё",
                 locationLabel: "Локация",
                 locationGet: "Получить",
                 locationNotSet: "Не указана",
@@ -541,6 +591,12 @@
         const shotDateInput = document.getElementById('shot-date');
         const shotDateNowBtn = document.getElementById('shot-date-now-btn');
         const shotSettingsInput = document.getElementById('shot-settings');
+        const shutterSlider = document.getElementById('shutter-slider');
+        const shutterDisplay = document.getElementById('shutter-display');
+        const shutterCustomInput = document.getElementById('shutter-custom');
+        const apertureSlider = document.getElementById('aperture-slider');
+        const apertureDisplay = document.getElementById('aperture-display');
+        const apertureCustomInput = document.getElementById('aperture-custom');
         const shotDescriptionInput = document.getElementById('shot-description');
         const shotIndicator = document.getElementById('shot-indicator');
 
@@ -591,6 +647,134 @@
             }
             return bytes;
         }
+
+        // --- EXPOSURE PRESETS (sliders) ---
+        const SHUTTER_VALUES = [
+            'auto',
+            '1/8000','1/4000','1/2000','1/1000','1/500','1/250','1/125','1/60','1/30','1/15','1/8','1/4','1/2',
+            '1"','2"','4"','8"','15"','30"',
+            'bulb',
+            'custom'
+        ];
+
+        const APERTURE_VALUES = [
+            'auto',
+            'f/1.0','f/1.2','f/1.4','f/1.8','f/2','f/2.8','f/4','f/5.6','f/8','f/11','f/16','f/22','f/32',
+            'custom'
+        ];
+
+        function formatExposureToken(token) {
+            const t = i18n[currentLang];
+            if (token === 'auto') return t.autoWord || 'Auto';
+            if (token === 'custom') return t.customWord || 'Custom';
+            if (token === 'bulb') return 'Bulb';
+            return token;
+        }
+
+        function isAutoToken(token) {
+            return token === 'auto' || !token;
+        }
+
+        function normalizeShotExposure(shot) {
+            // Backward compatible migration for older saved rolls
+            if (shot.shutterSel === undefined) shot.shutterSel = 0;
+            if (shot.apertureSel === undefined) shot.apertureSel = 0;
+            if (shot.shutterCustom === undefined) shot.shutterCustom = '';
+            if (shot.apertureCustom === undefined) shot.apertureCustom = '';
+            if (shot.extraSettings === undefined) {
+                if (shot.settings && String(shot.settings).trim()) {
+                    shot.extraSettings = String(shot.settings).trim();
+                    shot.legacySettings = true;
+                } else {
+                    shot.extraSettings = '';
+                }
+            }
+            if (shot.legacySettings === undefined) shot.legacySettings = false;
+        }
+
+        function getShutterValueFromShot(shot) {
+            const token = SHUTTER_VALUES[Number(shot.shutterSel)] || 'auto';
+            if (token === 'custom') {
+                return (shot.shutterCustom || '').trim() || 'auto';
+            }
+            return token;
+        }
+
+        function getApertureValueFromShot(shot) {
+            const token = APERTURE_VALUES[Number(shot.apertureSel)] || 'auto';
+            if (token === 'custom') {
+                return (shot.apertureCustom || '').trim() || 'auto';
+            }
+            return token;
+        }
+
+        function formatShutterForSettings(token) {
+            const t = i18n[currentLang];
+            if (token === 'auto') return t.autoWord || 'Auto';
+            if (token === 'bulb') return 'Bulb';
+            if (/^\d+\/\d+$/.test(token)) return `${token}s`;
+            return token;
+        }
+
+        function formatApertureForSettings(token) {
+            const t = i18n[currentLang];
+            if (token === 'auto') return t.autoWord || 'Auto';
+            return token;
+        }
+
+        function buildSettingsStringForShot(shot) {
+            const shutter = getShutterValueFromShot(shot);
+            const aperture = getApertureValueFromShot(shot);
+            const extra = (shot.extraSettings || '').trim();
+
+            // Keep legacy free-text settings intact if sliders are untouched (Auto/Auto) and legacy flag is set
+            if (shot.legacySettings && isAutoToken(shutter) && isAutoToken(aperture) && extra) {
+                return extra;
+            }
+
+            // If everything is auto and no extra — keep a simple 'Auto'
+            if (isAutoToken(shutter) && isAutoToken(aperture) && !extra) {
+                return (i18n[currentLang].autoWord || 'Auto');
+            }
+
+            const parts = [];
+            parts.push(formatApertureForSettings(aperture));
+            parts.push(formatShutterForSettings(shutter));
+
+            if (extra) parts.push(extra);
+            return parts.join(' · ');
+        }
+
+        function syncExposureUIFromShot(shot) {
+            normalizeShotExposure(shot);
+
+            shutterSlider.max = String(SHUTTER_VALUES.length - 1);
+            apertureSlider.max = String(APERTURE_VALUES.length - 1);
+
+            shutterSlider.value = String(shot.shutterSel);
+            apertureSlider.value = String(shot.apertureSel);
+
+            const shutterToken = SHUTTER_VALUES[Number(shot.shutterSel)] || 'auto';
+            const apertureToken = APERTURE_VALUES[Number(shot.apertureSel)] || 'auto';
+
+            shutterCustomInput.style.display = shutterToken === 'custom' ? 'block' : 'none';
+            apertureCustomInput.style.display = apertureToken === 'custom' ? 'block' : 'none';
+
+            shutterCustomInput.value = shot.shutterCustom || '';
+            apertureCustomInput.value = shot.apertureCustom || '';
+
+            const shutterActual = getShutterValueFromShot(shot);
+            const apertureActual = getApertureValueFromShot(shot);
+
+            shutterDisplay.textContent = shutterToken === 'custom'
+                ? (shutterActual === 'auto' ? formatExposureToken('custom') : shutterActual)
+                : formatExposureToken(shutterActual);
+
+            apertureDisplay.textContent = apertureToken === 'custom'
+                ? (apertureActual === 'auto' ? formatExposureToken('custom') : apertureActual)
+                : formatExposureToken(apertureActual);
+        }
+
 
         // --- DATA ---
         const presetFilmTypes = {
@@ -696,7 +880,18 @@
                 shots: Array.from({length: filmDetails.frames}, (_, i) => ({
                     shotNumber: i + 1,
                     date: '',
+
+                    // Exposure (sliders + optional custom)
+                    shutterSel: 0,
+                    apertureSel: 0,
+                    shutterCustom: '',
+                    apertureCustom: '',
+                    extraSettings: '',
+                    legacySettings: false,
+
+                    // For backward compatibility and exports
                     settings: '',
+
                     description: '',
                     location: null,   // { lat, lon } | null
                     reference: null   // dataURL string | null
@@ -721,7 +916,10 @@
             shotDateInput.value = shot.date || getLocalDateTimeValue();
 
             // Settings / notes
-            shotSettingsInput.value = shot.settings || '';
+            normalizeShotExposure(shot);
+            syncExposureUIFromShot(shot);
+
+            shotSettingsInput.value = shot.extraSettings || '';
             shotDescriptionInput.value = shot.description || '';
 
             // Location
@@ -766,7 +964,20 @@
             const shot = currentRoll.shots[currentShotIndex];
 
             shot.date = shotDateInput.value;
-            shot.settings = shotSettingsInput.value;
+
+            // Exposure controls
+            normalizeShotExposure(shot);
+            shot.shutterSel = parseInt(shutterSlider.value, 10) || 0;
+            shot.apertureSel = parseInt(apertureSlider.value, 10) || 0;
+            shot.shutterCustom = shutterCustomInput.value || '';
+            shot.apertureCustom = apertureCustomInput.value || '';
+            shot.extraSettings = shotSettingsInput.value || '';
+
+            // Once user touches sliders, stop treating legacy text as source of truth
+            shot.legacySettings = false;
+
+            shot.settings = buildSettingsStringForShot(shot);
+
             shot.description = shotDescriptionInput.value;
 
             upsertCurrentRollInSavedRolls();
@@ -798,7 +1009,15 @@
                 const rollCard = document.createElement('div');
                 rollCard.className =
                     'card p-4 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4';
-                const filledShots = roll.shots.filter(s => s.settings || s.description).length;
+                const filledShots = roll.shots.filter(s => {
+                    normalizeShotExposure(s);
+                    const sh = getShutterValueFromShot(s);
+                    const ap = getApertureValueFromShot(s);
+                    const hasExposure = !(isAutoToken(sh) && isAutoToken(ap));
+                    const hasExtra = (s.extraSettings && String(s.extraSettings).trim());
+                    const hasDesc = (s.description && String(s.description).trim());
+                    return hasExposure || hasExtra || hasDesc;
+                }).length;
 
                 rollCard.innerHTML = `
                         <div>
@@ -871,11 +1090,16 @@
             // Shooting screen static labels
             document.getElementById('i18n-timeLabel').textContent = t.timeLabel;
             document.getElementById('i18n-settingsLabel').textContent = t.settingsLabel;
+            document.getElementById('i18n-shutterLabel').textContent = t.shutterLabel;
+            document.getElementById('i18n-apertureLabel').textContent = t.apertureLabel;
+            document.getElementById('i18n-extraSettingsLabel').textContent = t.extraSettingsLabel;
             document.getElementById('i18n-locationLabel').textContent = t.locationLabel;
             document.getElementById('i18n-notesLabel').textContent = t.notesLabel;
             document.getElementById('i18n-referenceLabel').textContent = t.referenceLabel;
 
             shotSettingsInput.placeholder = t.settingsPlaceholder;
+            shutterCustomInput.placeholder = t.shutterCustomPlaceholder;
+            apertureCustomInput.placeholder = t.apertureCustomPlaceholder;
             shotDescriptionInput.placeholder = t.notesPlaceholder;
 
             shotLocationBtn.textContent = t.locationGet;
@@ -1068,7 +1292,13 @@
                 content += `Film: ${roll.filmName} (${roll.filmFormat})\n=====================\n\n`;
 
                 roll.shots.forEach(shot => {
-                    if (shot.settings || shot.description) {
+                    normalizeShotExposure(shot);
+                    const sh = getShutterValueFromShot(shot);
+                    const ap = getApertureValueFromShot(shot);
+                    const hasExposure = !(isAutoToken(sh) && isAutoToken(ap));
+                    const hasExtra = (shot.extraSettings && String(shot.extraSettings).trim());
+                    const hasDesc = (shot.description && String(shot.description).trim());
+                    if (hasExposure || hasExtra || hasDesc) {
                         content += `Shot ${shot.shotNumber}:\n`;
                         content += `  Date: ${shot.date ? new Date(shot.date).toLocaleString() : 'N/A'}\n`;
                         content += `  Settings: ${shot.settings || 'N/A'}\n`;
@@ -1095,7 +1325,13 @@
                 content += header.join(',') + '\n';
 
                 roll.shots.forEach(shot => {
-                    if (shot.settings || shot.description) {
+                    normalizeShotExposure(shot);
+                    const sh = getShutterValueFromShot(shot);
+                    const ap = getApertureValueFromShot(shot);
+                    const hasExposure = !(isAutoToken(sh) && isAutoToken(ap));
+                    const hasExtra = (shot.extraSettings && String(shot.extraSettings).trim());
+                    const hasDesc = (shot.description && String(shot.description).trim());
+                    if (hasExposure || hasExtra || hasDesc) {
                         const row = [
                             shot.shotNumber,
                             `"${shot.date ? new Date(shot.date).toISOString() : ''}"`,
@@ -1191,6 +1427,29 @@
         shotDateInput.addEventListener('input', saveCurrentShot);
         shotSettingsInput.addEventListener('input', saveCurrentShot);
         shotDescriptionInput.addEventListener('input', saveCurrentShot);
+
+        // Exposure sliders + custom fields
+        function handleExposureUIChange() {
+            if (!currentRoll) return;
+            const shot = currentRoll.shots[currentShotIndex];
+            normalizeShotExposure(shot);
+
+            shot.shutterSel = parseInt(shutterSlider.value, 10) || 0;
+            shot.apertureSel = parseInt(apertureSlider.value, 10) || 0;
+            shot.shutterCustom = shutterCustomInput.value || '';
+            shot.apertureCustom = apertureCustomInput.value || '';
+
+            // If user changes exposure UI, it's no longer legacy
+            shot.legacySettings = false;
+
+            syncExposureUIFromShot(shot);
+            saveCurrentShot();
+        }
+
+        shutterSlider.addEventListener('input', handleExposureUIChange);
+        apertureSlider.addEventListener('input', handleExposureUIChange);
+        shutterCustomInput.addEventListener('input', handleExposureUIChange);
+        apertureCustomInput.addEventListener('input', handleExposureUIChange);
 
         // --- "NOW" BUTTON ---
         shotDateNowBtn.addEventListener('click', () => {
